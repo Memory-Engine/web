@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Engine</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #06050f;
+  --surface: #0d0b1a;
+  --border: #1c1830;
+  --accent: #a855f7;
+  --accent-bright: #c084fc;
+  --accent-btn: #7c3aed;
+  --text: #f1eeff;
+  --muted: #5a5275;
+  --muted2: #8b7fb5;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; overflow-x: hidden; }
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9999;
+}
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px 60px; z-index: 100;
+  background: linear-gradient(to bottom, rgba(6,5,15,0.97), transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(168,85,247,0.08);
+}
+.nav-logo { font-family: 'DM Mono', monospace; font-size: 13px; letter-spacing: .15em; color: var(--text); text-transform: uppercase; text-decoration: none; }
+.nav-logo span { color: var(--accent-bright); }
+.nav-links { display: flex; gap: 32px; align-items: center; }
+.nav-links a { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color .2s; }
+.nav-links a:hover { color: var(--text); }
+.nav-cta { background: var(--accent) !important; color: #fff !important; padding: 10px 22px !important; font-weight: 700 !important; }
+.nav-cta:hover { background: var(--accent-btn) !important; color: #fff !important; }
+.hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 130px 40px 90px; position: relative; overflow: hidden; }
+.hero-glow { position: absolute; top: 40%; left: 50%; transform: translate(-50%,-50%); width: 1000px; height: 1000px; background: radial-gradient(circle, rgba(168,85,247,0.08) 0%, transparent 60%); pointer-events: none; }
+.hero-glow2 { position: absolute; top: 15%; left: 15%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(124,58,237,0.05) 0%, transparent 65%); pointer-events: none; }
+.hero-glow3 { position: absolute; bottom: 10%; right: 10%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(192,132,252,0.04) 0%, transparent 65%); pointer-events: none; }
+.hero-label { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .25em; color: var(--accent); text-transform: uppercase; margin-bottom: 28px; opacity: 0; animation: fadeUp .8s .2s forwards; border: 1px solid rgba(168,85,247,0.25); padding: 6px 16px; display: inline-block; }
+.hero h1 { font-size: clamp(50px,8.5vw,108px); font-weight: 800; line-height: .92; letter-spacing: -.03em; margin-bottom: 36px; opacity: 0; animation: fadeUp .8s .4s forwards; }
+.hero h1 em { font-style: normal; color: var(--accent-bright); }
+.hero-sub { font-size: clamp(15px,1.8vw,18px); color: var(--muted2); max-width: 560px; line-height: 1.8; margin-bottom: 52px; opacity: 0; animation: fadeUp .8s .6s forwards; }
+.hero-buttons { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; justify-content: center; opacity: 0; animation: fadeUp .8s .8s forwards; }
+.btn-primary { background: var(--accent); color: #fff; font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: .05em; padding: 16px 36px; text-decoration: none; display: inline-block; transition: background .2s, transform .2s; }
+.btn-primary:hover { background: var(--accent-btn); transform: translateY(-2px); }
+.btn-secondary { border: 1px solid var(--border); color: var(--text); font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600; padding: 16px 36px; text-decoration: none; display: inline-block; transition: border-color .2s, transform .2s; }
+.btn-secondary:hover { border-color: var(--accent); transform: translateY(-2px); }
+.clients { padding: 80px 60px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.label-center { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .25em; text-transform: uppercase; color: var(--muted); text-align: center; margin-bottom: 40px; }
+.clients-grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 860px; margin: 0 auto; }
+.client-tag { font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted2); border: 1px solid var(--border); padding: 10px 22px; background: var(--surface); transition: color .2s, border-color .2s, background .2s; }
+.client-tag:hover { color: var(--text); border-color: rgba(168,85,247,0.4); background: rgba(168,85,247,0.06); }
+.stats-outer { border-bottom: 1px solid var(--border); }
+.stats { padding: 100px 60px; max-width: 1200px; margin: 0 auto; }
+.stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 2px; margin-top: 60px; }
+.stat-item { background: var(--surface); border: 1px solid var(--border); padding: 44px 32px; text-align: center; transition: border-color .3s; position: relative; overflow: hidden; }
+.stat-item::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: 0; transition: opacity .3s; }
+.stat-item:hover::before { opacity: 1; }
+.stat-item:hover { border-color: rgba(168,85,247,0.25); }
+.stat-val { font-size: clamp(32px,4vw,54px); font-weight: 800; letter-spacing: -.02em; color: var(--accent-bright); line-height: 1; margin-bottom: 10px; }
+.stat-val.dim { color: var(--accent); }
+.stat-desc { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); line-height: 1.6; }
+.services-outer { border-bottom: 1px solid var(--border); }
+.services { padding: 100px 60px; max-width: 1200px; margin: 0 auto; }
+.eyebrow { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .25em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+.sec-title { font-size: clamp(30px,4vw,52px); font-weight: 800; letter-spacing: -.025em; line-height: 1.05; margin-bottom: 60px; }
+.services-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; }
+.service-card { background: var(--surface); border: 1px solid var(--border); padding: 40px 36px; transition: border-color .3s; }
+.service-card:hover { border-color: rgba(168,85,247,0.3); }
+.service-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: 20px; }
+.service-title { font-size: 19px; font-weight: 700; margin-bottom: 12px; letter-spacing: -.01em; }
+.service-desc { font-size: 13px; color: var(--muted2); line-height: 1.75; }
+.cases-outer { border-bottom: 1px solid var(--border); }
+.cases-section { padding: 100px 60px; max-width: 1200px; margin: 0 auto; }
+.cases-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 2px; margin-top: 60px; }
+.case-card { background: var(--surface); border: 1px solid var(--border); padding: 44px; position: relative; overflow: hidden; transition: border-color .3s; text-decoration: none; color: inherit; display: block; }
+.case-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent-btn), var(--accent-bright)); transform: scaleX(0); transform-origin: left; transition: transform .4s; }
+.case-card:hover::before { transform: scaleX(1); }
+.case-card:hover { border-color: rgba(168,85,247,0.3); }
+.case-tag { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+.case-name { font-size: 26px; font-weight: 700; margin-bottom: 12px; letter-spacing: -.015em; }
+.case-desc { font-size: 13px; color: var(--muted2); line-height: 1.75; margin-bottom: 28px; }
+.case-stats { display: flex; gap: 28px; flex-wrap: wrap; }
+.cs-val { font-size: 19px; font-weight: 700; color: var(--accent-bright); }
+.cs-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
+.cases-cta-wrap { margin-top: 40px; text-align: center; }
+.btn-outline { border: 1px solid rgba(168,85,247,0.4); color: var(--accent-bright); font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .15em; text-transform: uppercase; padding: 14px 32px; text-decoration: none; display: inline-block; transition: background .2s, border-color .2s; }
+.btn-outline:hover { background: rgba(168,85,247,0.08); border-color: var(--accent); }
+.cta-section { padding: 130px 60px; text-align: center; position: relative; overflow: hidden; border-bottom: 1px solid var(--border); }
+.cta-section::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 800px; height: 800px; background: radial-gradient(circle, rgba(168,85,247,0.07) 0%, transparent 60%); pointer-events: none; }
+.cta-section h2 { font-size: clamp(38px,6vw,76px); font-weight: 800; letter-spacing: -.025em; line-height: .95; margin-bottom: 28px; }
+.cta-section h2 span { color: var(--accent-bright); }
+.cta-section p { font-size: 16px; color: var(--muted2); max-width: 460px; margin: 0 auto 52px; line-height: 1.75; }
+footer { padding: 40px 60px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.footer-logo { font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: .15em; text-transform: uppercase; color: #2a2440; }
+.footer-logo span { color: var(--accent); }
+.footer-copy { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: .08em; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
+.fade-in { opacity: 0; transform: translateY(24px); transition: opacity .75s, transform .75s; }
+.fade-in.visible { opacity: 1; transform: translateY(0); }
+@media(max-width:900px){
+  nav{padding:20px 24px} .nav-links{display:none}
+  .hero{padding:100px 24px 60px}
+  .clients,.stats,.services,.cases-section{padding:60px 24px}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .services-grid,.cases-grid{grid-template-columns:1fr}
+  .cta-section{padding:80px 24px}
+  footer{padding:32px 24px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo">Memory<span>Engine</span></a>
+  <div class="nav-links">
+    <a href="#services">Services</a>
+    <a href="https://memory-engine.github.io/cases/" target="_blank">Cases</a>
+    <a href="#contact" class="nav-cta">Book a Call</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <div class="hero-glow3"></div>
+  <div class="hero-label">Web3 Growth & Distribution</div>
+  <h1>Turning<br>Attention Into<br><em>On-Chain Action</em></h1>
+  <p class="hero-sub">From alpha networks to KOL campaigns — we build structured growth systems that convert traffic into real community, real staking, and real market momentum.</p>
+  <div class="hero-buttons">
+    <a href="https://memory-engine.github.io/cases/" target="_blank" class="btn-primary">See Case Studies</a>
+    <a href="#contact" class="btn-secondary">Book a Call</a>
+  </div>
+</section>
+
+<section class="clients fade-in">
+  <div class="label-center">Projects We've Worked With</div>
+  <div class="clients-grid">
+    <div class="client-tag">Switchboard</div>
+    <div class="client-tag">EveDex</div>
+    <div class="client-tag">$FURM</div>
+    <div class="client-tag">Concordium</div>
+    <div class="client-tag">Tonzo</div>
+    <div class="client-tag">Wowmax</div>
+    <div class="client-tag">Bluff</div>
+  </div>
+</section>
+
+<div class="stats-outer">
+  <div class="stats fade-in">
+    <div class="label-center">Results We've Delivered</div>
+    <div class="stats-grid">
+      <div class="stat-item"><div class="stat-val">1.7M+</div><div class="stat-desc">Total Impressions<br>Across Campaigns</div></div>
+      <div class="stat-item"><div class="stat-val">100k+</div><div class="stat-desc">New Audience<br>Members Acquired</div></div>
+      <div class="stat-item"><div class="stat-val dim">3x+</div><div class="stat-desc">Average ROI<br>per Campaign</div></div>
+      <div class="stat-item"><div class="stat-val">$55k+</div><div class="stat-desc">Capital Staked &<br>Budget Saved</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="services-outer">
+  <div class="services fade-in" id="services">
+    <div class="eyebrow">What We Do</div>
+    <div class="sec-title">Full-Stack<br>Growth Infrastructure</div>
+    <div class="services-grid">
+      <div class="service-card"><div class="service-num">01</div><div class="service-title">Alpha Network Distribution</div><div class="service-desc">70+ activated alpha servers, coordinated posting windows, and signal-driven narratives that generate organic discussions — not noise.</div></div>
+      <div class="service-card"><div class="service-num">02</div><div class="service-title">KOL & Streamer Campaigns</div><div class="service-desc">Tier-1 and Tier-2 KOL curation, streamer activations, and synchronized content drops that cluster attention and build credibility.</div></div>
+      <div class="service-card"><div class="service-num">03</div><div class="service-title">Community Collaborations</div><div class="service-desc">300+ cross-community partnerships, Discord and Telegram collabs, and ambassador-driven engagement loops for sustained organic growth.</div></div>
+      <div class="service-card"><div class="service-num">04</div><div class="service-title">Traffic Quality Optimization</div><div class="service-desc">We audit and eliminate inefficient spend. Real-time monitoring to convert impressions into staking, on-chain activity, and buy pressure.</div></div>
+      <div class="service-card"><div class="service-num">05</div><div class="service-title">Narrative & Positioning</div><div class="service-desc">Campaigns framed as insider insight — not promotion. Consistent signal structuring across all channels to prevent dilution.</div></div>
+      <div class="service-card"><div class="service-num">06</div><div class="service-title">Strategic Audit & Advisory</div><div class="service-desc">Full-funnel audits from traffic to retention, launch plan reviews, and roadmap recommendations that identify structural bottlenecks early.</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="cases-outer">
+  <div class="cases-section fade-in" id="cases">
+    <div class="eyebrow">Case Studies</div>
+    <div class="sec-title">Campaigns That<br>Moved Markets</div>
+    <div class="cases-grid">
+      <a href="https://memory-engine.github.io/cases/" target="_blank" class="case-card">
+        <div class="case-tag">Oracle Infrastructure</div>
+        <div class="case-name">Switchboard</div>
+        <div class="case-desc">Alpha-driven community expansion with 70+ servers and 15 strategic partnerships converting attention into on-chain staking.</div>
+        <div class="case-stats">
+          <div><div class="cs-val">20,000+</div><div class="cs-label">New Audience</div></div>
+          <div><div class="cs-val">3x ROI</div><div class="cs-label">Return</div></div>
+          <div><div class="cs-val">$15k+</div><div class="cs-label">Capital Staked</div></div>
+        </div>
+      </a>
+      <a href="https://memory-engine.github.io/cases/" target="_blank" class="case-card">
+        <div class="case-tag">DEX / Community Growth</div>
+        <div class="case-name">EveDex</div>
+        <div class="case-desc">280+ collabs, 45 alpha calls, and 20 strategic partnerships building a high-quality active community from the ground up.</div>
+        <div class="case-stats">
+          <div><div class="cs-val">22,000+</div><div class="cs-label">New Audience</div></div>
+          <div><div class="cs-val">40,000+</div><div class="cs-label">Engagements</div></div>
+          <div><div class="cs-val">7,000+</div><div class="cs-label">Discord</div></div>
+        </div>
+      </a>
+      <a href="https://memory-engine.github.io/cases/" target="_blank" class="case-card">
+        <div class="case-tag">MemeCoin / Efficiency Play</div>
+        <div class="case-name">$FURM</div>
+        <div class="case-desc">Restructured alpha caller mix with an insight-driven narrative that turned inefficient spend into measurable market momentum.</div>
+        <div class="case-stats">
+          <div><div class="cs-val">+50%</div><div class="cs-label">Market Cap</div></div>
+          <div><div class="cs-val">$2M–3M</div><div class="cs-label">Volume</div></div>
+          <div><div class="cs-val">250k+</div><div class="cs-label">Impressions</div></div>
+        </div>
+      </a>
+      <a href="https://memory-engine.github.io/cases/" target="_blank" class="case-card">
+        <div class="case-tag">On-Chain Lottery</div>
+        <div class="case-name">Tonzo</div>
+        <div class="case-desc">Launched from zero with 48 KOLs, 30 streams, and a full-funnel audit that saved the client $40,000+ in wasted traffic spend.</div>
+        <div class="case-stats">
+          <div><div class="cs-val">50,000+</div><div class="cs-label">Monthly Active Users</div></div>
+          <div><div class="cs-val">$40k+</div><div class="cs-label">Budget Saved</div></div>
+          <div><div class="cs-val">756k+</div><div class="cs-label">Impressions</div></div>
+        </div>
+      </a>
+    </div>
+    <div class="cases-cta-wrap">
+      <a href="https://memory-engine.github.io/cases/" target="_blank" class="btn-outline">View All 7 Case Studies →</a>
+    </div>
+  </div>
+</div>
+
+<section class="cta-section fade-in" id="contact">
+  <h2>Ready to Build<br><span>Real Traction?</span></h2>
+  <p>We work with a select number of projects per cycle. If you're building something serious in Web3, let's talk.</p>
+  <a href="/cdn-cgi/l/email-protection#e38b868f8f8ca38e868e8c919a868d848a8d86cd9b9a99" class="btn-primary">Book a Call</a>
+</section>
+
+<footer>
+  <div class="footer-logo">Memory<span>Engine</span></div>
+  <div class="footer-copy">© 2025 Memory Engine. All rights reserved.</div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(el => { if(el.isIntersecting){ el.target.classList.add('visible'); obs.
