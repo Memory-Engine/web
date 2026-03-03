@@ -237,7 +237,7 @@ footer { padding: 40px 60px; display: flex; align-items: center; justify-content
 <section class="cta-section fade-in" id="contact">
   <h2>Ready to Build<br><span>Real Traction?</span></h2>
   <p>We work with a select number of projects per cycle. If you're building something serious in Web3, let's talk.</p>
-  <a href="/cdn-cgi/l/email-protection#e38b868f8f8ca38e868e8c919a868d848a8d86cd9b9a99" class="btn-primary">Book a Call</a>
+  <a href="mailto:hello@memoryengine.xyz" class="btn-primary">Book a Call</a>
 </section>
 
 <footer>
@@ -245,6 +245,11 @@ footer { padding: 40px 60px; display: flex; align-items: center; justify-content
   <div class="footer-copy">© 2025 Memory Engine. All rights reserved.</div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
   const obs = new IntersectionObserver((entries) => {
-    entries.forEach(el => { if(el.isIntersecting){ el.target.classList.add('visible'); obs.
+    entries.forEach(el => { if(el.isIntersecting){ el.target.classList.add('visible'); obs.unobserve(el.target); } });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.fade-in').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
